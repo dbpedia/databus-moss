@@ -32,7 +32,7 @@ Navigate to `Keys`, create an API key and save your key on your local machine. Y
 OWM3ZTY3NTItNjQ2ZC00ZDE5LWE4ZTctYjc4NGFkNjkyZDFj_17784836-6dc2-4880-96ac-42a0f3570bb2
 ```
 
-To create a layer on your MOSS instance, issue the following `curl`:
+To create a layer entry on your MOSS instance, issue the following `curl`:
 ```
 curl -X POST 'http://localhost:5000/api/save?layer=simple&resource=https://databus.openenergyplatform.org/hu_wu/test_group' \
   -H 'accept: application/json' \
