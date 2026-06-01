@@ -22,30 +22,6 @@ Go to
 http://localhost:5000
 ```
 
-Login at the top right and click on your username. Alternatively go to
-```
-http://localhost:5000/user
-```
-
-Navigate to `Keys`, create an API key and save your key on your local machine. Your API key should look something like this:
-```
-OWM3ZTY3NTItNjQ2ZC00ZDE5LWE4ZTctYjc4NGFkNjkyZDFj_17784836-6dc2-4880-96ac-42a0f3570bb2
-```
-
-To create a layer entry on your MOSS instance, issue the following `curl`:
-```
-curl -X POST 'http://localhost:5000/api/save?layer=simple&resource=https://databus.openenergyplatform.org/hu_wu/test_group' \
-  -H 'accept: application/json' \
-  -H 'X-API-KEY: OWM3ZTY3NTItNjQ2ZC00ZDE5LWE4ZTctYjc4NGFkNjkyZDFj_17784836-6dc2-4880-96ac-42a0f3570bb2' \
-  -H 'Content-Type: text/turtle' \
-  -d '@prefix dct: <http://purl.org/dc/terms/> .
-<https://databus.openenergyplatform.org/hu_wu/test_group>
-     <https://saref.etsi.org/core/isAbout> <http://openenergy-platform.org/ontology/oeo/OEO_00020054> ;
-     <https://saref.etsi.org/core/isAbout> <http://openenergy-platform.org/ontology/oeo/OEO_00020053> .'
-```
-
-Searching for `nuclear` in the main search field at `http://localhost:5000` should now show the new layer.
-
 ## About
 
 The Databus MOSS (Metadata Overlay Search System) is a system of creating modular metadata extensions for the metadata graphs provided by [Databus](https://github.com/dbpedia/databus) entries. The general idea is that a Databus instance provides stable identifiers for your files along with the most basic metadata for file usage (format, comppression, licensing). However, more domain or file-type specific metadata is often needed. MOSS provides a system for the management of additional metadata graphs. With MOSS, you can:
