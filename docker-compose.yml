@@ -1,48 +1,42 @@
-version: "3.0"
 services:
   # Frontend Svelte App for HTML view, login and API-key creation
   moss-frontend:
     image: dbpedia/databus-moss-frontend:dev
-    container_name: moss_dev_frontend
     environment:
-      PUBLIC_MOSS_BASE_URL: https://dev.moss.dbpedia.org
-      ORIGIN: https://dev.moss.dbpedia.org
-      AUTH_OIDC_CLIENT_ID: moss-dev
-      AUTH_OIDC_CLIENT_SECRET: z7feqbX7lGyAFzPzGIaC4LT7vidPqrP5
-      AUTH_OIDC_ISSUER: https://auth.dbpedia.org/realms/dbpedia
+      MOSS_API_SERVER_URL: http://moss-server:8080
+      PUBLIC_MOSS_BASE_URL: ${MOSS_BASE_URL}
+      ORIGIN: http://localhost:5000
+      AUTH_OIDC_CLIENT_ID: ${AUTH_OIDC_CLIENT_ID}
+      AUTH_OIDC_CLIENT_SECRET: ${AUTH_OIDC_CLIENT_SECRET}
+      AUTH_OIDC_ISSUER: ${AUTH_OIDC_ISSUER}
       AUTH_OIDC_CLIENT_SCOPE: "openid profile email"
+      AUTH_ADMIN_ROLE: ${AUTH_ADMIN_ROLE}
+      AUTH_ADMIN_USERS: ${AUTH_ADMIN_USERS}
+      AUTH_TRUST_HOST: "true"
     ports:
       - "5000:3000"
   # MOSS Server
   moss-server:
-    image: dbpedia/databus-moss-server:dev
-    container_name: moss_dev_server
+    image: moss-server:local
     environment:
-      MOSS_BASE_URL: https://dev.moss.dbpedia.org
-      LOOKUP_BASE_URL: http://lookup:8082
-      GSTORE_BASE_URL: http://gstore:8080
-      USER_DATABASE_PATH: /users/users.db
-      CONFIG_PATH: /config/moss-config.yml
-      AUTH_OIDC_CLIENT_ID: moss-dev
-      AUTH_OIDC_CLIENT_SECRET: z7feqbX7lGyAFzPzGIaC4LT7vidPqrP5
-      AUTH_OIDC_ISSUER: https://auth.dbpedia.org/realms/dbpedia
+      CONFIG_PATH: ${CONFIG_PATH}
+      MOSS_BASE_URL: ${MOSS_BASE_URL}
+      GSTORE_BASE_URL: ${GSTORE_BASE_URL}
+      LOOKUP_BASE_URL: ${LOOKUP_BASE_URL}
+      STORE_SPARQL_ENDPOINT: ${STORE_SPARQL_ENDPOINT}
+      USER_DATABASE_PATH: ${USER_DATABASE_PATH}
+      JWT_VERBOSE: ${JWT_VERBOSE}
+      AUTH_OIDC_ISSUER: ${AUTH_OIDC_ISSUER}
+      AUTH_ADMIN_ROLE: ${AUTH_ADMIN_ROLE}
+      AUTH_ADMIN_USERS: ${AUTH_ADMIN_USERS}
+      AUTH_OIDC_CLIENT_ID: ${AUTH_OIDC_CLIENT_ID}
     volumes:
       - "./config:/config"
       - "./data/users:/users"
     ports:
       - "5001:8080"
-  # Lookup for indexed search
-  lookup:
-    image: dbpedia/lookup:dev
-    container_name: moss_dev_lookup
-    ports:
-      - "5002:8082"
-    volumes:
-      - "./config/lookup-config.yml:/resources/config.yml"
-      - "./index:/index"
   gstore:
     image: dbpedia/gstore:dev
-    container_name: moss_dev_gstore
     environment:
       STORAGE_USER: "dba"
       STORAGE_PASS: "everyoneknows"
@@ -53,9 +47,15 @@ services:
     volumes:
       - ./data/gstore/git:/gstore/git
       - ./data/gstore/logs:/gstore/logs
+  lookup:
+    image: dbpedia/lookup:dev
+    ports:
+      - "5002:8082"
+    volumes:
+      - "./config/lookup-config.yml:/resources/config.yml"
+      - "./index:/index"
   virtuoso:
     image: "openlink/virtuoso-opensource-7:latest"
-    container_name: moss_dev_virtuoso
     environment:
       DBA_PASSWORD: "everyoneknows"
       SPARQL_UPDATE: "true"

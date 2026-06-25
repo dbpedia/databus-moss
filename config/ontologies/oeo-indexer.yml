@@ -6,6 +6,7 @@ indexFields:
     documentVariable: class
     query: >
       SELECT ?class ?label WHERE {
+        #GRAPH# 
         {
           ?class a <http://www.w3.org/2002/07/owl#Class> .
           ?class <http://www.w3.org/2000/01/rdf-schema#label> ?label .
@@ -16,6 +17,7 @@ indexFields:
     documentVariable: class
     query: >
       SELECT ?class ?type WHERE {
+        #GRAPH#
         {
           ?class a <http://www.w3.org/2002/07/owl#Class> .
           BIND("class" AS ?type)

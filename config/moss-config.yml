@@ -1,38 +1,7 @@
-loaders:
-  - collectionURI: https://databus.dbpedia.org/janfo/collections/moss-ontologies
-    indexer:
-      configPath: ./common/ontology-indexer.yml
-layers:
-  - name: keyword
-    formatMimeType: application/ld+json
-    templatePath: layers/keyword/template.jsonld
-    resourceTypes: 
-      - https://dataid.dbpedia.org/databus#Artifact
-      - https://dataid.dbpedia.org/databus#Group
-      - https://dataid.dbpedia.org/databus#Version
-    indexers:
-      - layers/keyword/indexer.yml
-  - name: openenergy
-    formatMimeType: application/ld+json
-    templatePath: layers/openenergy/template.jsonld
-    shaclPath: layers/openenergy/shapes.shacl
-    resourceTypes: 
-      - https://dataid.dbpedia.org/databus#Artifact
-    indexers:
-      - layers/openenergy/indexer.yml
-      - indexers/annotate-count-indexer.yml
-  - name: opentransport
-    formatMimeType: application/ld+json
-    templatePath: layers/opentransport/template.jsonld
-    resourceTypes: 
-      - https://dataid.dbpedia.org/databus#Version
-    indexers:
-      - layers/opentransport/indexer.yml
-      - indexers/annotate-count-indexer.yml
-  - name: helmholtz
-    formatMimeType: application/ld+json
-    templatePath: layers/helmholtz/template.jsonld
-    resourceTypes: 
-      - https://dataid.dbpedia.org/databus#Version
-    indexers:
-      - layers/helmholtz/indexer.yml
+---
+templatePath: templates
+modulePath: modules
+templateResourcePlaceholder: $DATABUS_RESOURCE
+ontologies:
+- dataPath: ./ontologies/oeo.ttl
+  indexerConfigPath: ./ontologies/oeo-indexer.yml
