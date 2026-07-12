@@ -1,72 +1,76 @@
+name: moss
+
 services:
-  # Frontend Svelte App for HTML view, login and API-key creation
-  moss-frontend:
-    image: dbpedia/databus-moss-frontend:dev
-    environment:
-      MOSS_API_SERVER_URL: http://moss-server:8080
-      PUBLIC_MOSS_BASE_URL: ${MOSS_BASE_URL}
-      ORIGIN: http://localhost:5000
-      AUTH_OIDC_CLIENT_ID: ${AUTH_OIDC_CLIENT_ID}
-      AUTH_OIDC_CLIENT_SECRET: ${AUTH_OIDC_CLIENT_SECRET}
-      AUTH_OIDC_ISSUER: ${AUTH_OIDC_ISSUER}
-      AUTH_OIDC_CLIENT_SCOPE: "openid profile email"
-      AUTH_ADMIN_ROLE: ${AUTH_ADMIN_ROLE}
-      AUTH_ADMIN_USERS: ${AUTH_ADMIN_USERS}
-      AUTH_TRUST_HOST: "true"
-    ports:
-      - "5000:3000"
-  # MOSS Server
-  moss-server:
-    image: moss-server:local
-    environment:
-      CONFIG_PATH: ${CONFIG_PATH}
-      MOSS_BASE_URL: ${MOSS_BASE_URL}
-      GSTORE_BASE_URL: ${GSTORE_BASE_URL}
-      LOOKUP_BASE_URL: ${LOOKUP_BASE_URL}
-      STORE_SPARQL_ENDPOINT: ${STORE_SPARQL_ENDPOINT}
-      USER_DATABASE_PATH: ${USER_DATABASE_PATH}
-      JWT_VERBOSE: ${JWT_VERBOSE}
-      AUTH_OIDC_ISSUER: ${AUTH_OIDC_ISSUER}
-      AUTH_ADMIN_ROLE: ${AUTH_ADMIN_ROLE}
-      AUTH_ADMIN_USERS: ${AUTH_ADMIN_USERS}
-      AUTH_OIDC_CLIENT_ID: ${AUTH_OIDC_CLIENT_ID}
-    volumes:
-      - "./config:/config"
-      - "./data/users:/users"
-    ports:
-      - "5001:8080"
-  gstore:
-    image: dbpedia/gstore:dev
-    environment:
-      STORAGE_USER: "dba"
-      STORAGE_PASS: "everyoneknows"
-      STORAGE_SPARQL_ENDPOINT_URI: http://virtuoso:8890/sparql
-      GSTORE_LOCALHOST_CONTEXT_FALLBACK_URL: http://172.17.0.1
-    ports:
-      - "5003:8080"
-    volumes:
-      - ./data/gstore/git:/gstore/git
-      - ./data/gstore/logs:/gstore/logs
-  lookup:
-    image: dbpedia/lookup:dev
-    ports:
-      - "5002:8082"
-    volumes:
-      - "./config/lookup-config.yml:/resources/config.yml"
-      - "./index:/index"
   virtuoso:
-    image: "openlink/virtuoso-opensource-7:latest"
+    image: openlink/virtuoso-opensource-7:latest
+    restart: unless-stopped
     environment:
-      DBA_PASSWORD: "everyoneknows"
+      DBA_PASSWORD: ${VIRTUOSO_DBA_PASSWORD}
       SPARQL_UPDATE: "true"
-      DEFAULT_GRAPH: "http://localhost:2000"
-    ports:
-      - "5004:8890"
+      DEFAULT_GRAPH: http://localhost:3000
     volumes:
-      - ./data/virtuoso:/database
+      - virtuoso_data:/database
     entrypoint: /bin/bash -c "
         echo 'grant SPARQL_LOAD_SERVICE_DATA to \"SPARQL\";' > /opt/virtuoso-opensource/initdb.d/ini.sql &&
         echo 'grant SPARQL_SPONGE to \"SPARQL\";' >> /opt/virtuoso-opensource/initdb.d/ini.sql &&
-        echo 'grant SPARQL_SELECT_FED to \"SPARQL\";' > /opt/virtuoso-opensource/initdb.d/ini.sql &&
+        echo 'grant SPARQL_SELECT_FED to \"SPARQL\";' >> /opt/virtuoso-opensource/initdb.d/ini.sql &&
         /virtuoso-entrypoint.sh
       "
+
+  gstore:
+    image: ghcr.io/dbpedia/gstore:dev
+    restart: unless-stopped
+    depends_on:
+      - virtuoso
+    environment:
+      STORAGE_USER: dba
+      STORAGE_PASS: ${VIRTUOSO_DBA_PASSWORD}
+      STORAGE_SPARQL_ENDPOINT_URI: http://virtuoso:8890/sparql
+      GSTORE_LOCALHOST_CONTEXT_FALLBACK_URL: http://172.17.0.1
+      DEFAULT_JSONLD_LOCALHOST_CONTEXT: http://localhost:3000/res/context.jsonld
+      DEFAULT_JSONLD_LOCALHOST_CONTEXT_LOCATION: https://databus.dbpedia.org/res/context.jsonld
+    volumes:
+      - gstore_git:/gstore/git
+      - gstore_logs:/gstore/logs
+
+  moss-server:
+    image: ghcr.io/dbpedia/databus-moss-server:dev
+    restart: unless-stopped
+    depends_on:
+      - gstore
+    environment:
+      CONFIG_PATH: /config
+      GSTORE_BASE_URL: http://gstore:8080
+      USER_DATABASE_PATH: /data/users.db
+      MOSS_BASE_URL: ${MOSS_BASE_URL}
+      AUTH_OIDC_ISSUER: ${AUTH_OIDC_ISSUER}
+      AUTH_OIDC_CLIENT_ID: ${AUTH_OIDC_CLIENT_ID}
+      AUTH_OIDC_CLIENT_SECRET: ${AUTH_OIDC_CLIENT_SECRET}
+      AUTH_ADMIN_USERS: ${AUTH_ADMIN_USERS}
+    volumes:
+      - ./config:/config
+      - moss_data:/data
+
+  moss-frontend:
+    image: ghcr.io/dbpedia/databus-moss-frontend:dev
+    restart: unless-stopped
+    depends_on:
+      - moss-server
+    environment:
+      MOSS_API_SERVER_URL: http://moss-server:8080
+      PUBLIC_MOSS_BASE_URL: ${MOSS_BASE_URL}
+      ORIGIN: ${AUTH_ORIGIN}
+      AUTH_SECRET: ${AUTH_SECRET}
+      AUTH_OIDC_ISSUER: ${AUTH_OIDC_ISSUER}
+      AUTH_OIDC_CLIENT_ID: ${AUTH_OIDC_CLIENT_ID}
+      AUTH_OIDC_CLIENT_SECRET: ${AUTH_OIDC_CLIENT_SECRET}
+      AUTH_OIDC_CLIENT_SCOPE: openid profile email
+      AUTH_TRUST_HOST: "true"
+    ports:
+      - "${MOSS_FRONTEND_PORT}:3000"
+
+volumes:
+  virtuoso_data:
+  gstore_git:
+  gstore_logs:
+  moss_data:

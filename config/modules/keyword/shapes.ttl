@@ -1,0 +1,16 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix moss: <http://dataid.dbpedia.org/ns/moss#> .
+@prefix schema: <https://schema.org/> .
+@prefix : <https://moss.dev.dbpedia.link/shapes#> .
+
+:MetadataEntryShape a sh:NodeShape ;
+  sh:targetClass moss:MetadataEntry ;
+  sh:property [
+    sh:path moss:extends ;
+    sh:nodeKind sh:IRI ;
+    sh:property [
+      sh:path schema:keywords ;
+      sh:minCount 1 ;
+      sh:message "The resource pointed to by moss:extends must have at least one schema:keywords." ;
+    ] ;
+  ] .

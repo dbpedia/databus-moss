@@ -1,0 +1,5 @@
+---
+id: "keyword"
+label: "Keyword"
+predicate: "<https://schema.org/keywords>|<http://www.w3.org/ns/dcat#distribution>/<http://www.w3.org/ns/dcat#keyword>"
+sortOrder: 2
